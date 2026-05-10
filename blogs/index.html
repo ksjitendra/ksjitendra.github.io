@@ -76,13 +76,31 @@
     .blog-list { padding: clamp(2.5rem,6vw,4rem) clamp(1.5rem,6vw,5rem) clamp(3rem,7vw,5rem); min-height: 45vh; }
     .section-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(1.45rem,2.8vw,2rem); color: var(--navy); font-weight: 800; margin-bottom: 1.4rem; }
     .post-list {
-      list-style: disc;
-      padding-left: 1.5rem;
+      list-style: none;
+      padding-left: 0;
       display: grid;
       gap: 0.72rem;
       font-style: italic;
     }
-    .post-list li { color: var(--text); font-size: clamp(1rem,2vw,1.18rem); line-height: 1.45; }
+    .post-list li {
+      color: var(--text);
+      font-size: clamp(1rem,2vw,1.18rem);
+      line-height: 1.45;
+      padding-left: 2rem;
+      position: relative;
+    }
+    .post-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.34rem;
+      width: 17px;
+      height: 17px;
+      border: 1.5px solid var(--mid);
+      border-radius: 5px;
+      background: linear-gradient(var(--teal) 0 5px, var(--white) 5px 100%);
+      box-shadow: 0 2px 6px rgba(26,79,138,0.12);
+    }
     .post-date {
       color: var(--hint);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
