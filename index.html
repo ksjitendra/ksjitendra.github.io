@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jitendra Kumar – Lead Backend Engineer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet" />
   <style>
     :root {
       --navy:       #1A4F8A;
@@ -66,11 +66,11 @@
         radial-gradient(circle at 60% 80%, rgba(29,122,106,0.12) 0%, transparent 40%);
     }
     .hero-inner {
-      max-width: 1060px; margin: auto; width: 100%;
-      display: flex; align-items: center; gap: 4rem; flex-wrap: wrap;
+      max-width: 1120px; margin: auto; width: 100%;
+      display: flex; align-items: center; gap: clamp(2.5rem,5vw,4rem); flex-wrap: wrap;
       position: relative; z-index: 1;
     }
-    .hero-text { flex: 1; min-width: 280px; }
+    .hero-text { flex: 1 1 680px; min-width: 280px; }
     .hero-eyebrow {
       display: inline-flex; align-items: center; gap: 0.5rem;
       background: rgba(29,122,106,0.22); border: 1px solid rgba(29,122,106,0.38);
@@ -83,8 +83,18 @@
       font-size: clamp(2.4rem,5vw,3.8rem); font-weight: 800; color: #fff;
       line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 1rem;
     }
-    .hero-sub { font-size: 1rem; color: rgba(255,255,255,0.78); max-width: 480px; line-height: 1.75; margin-bottom: 2.2rem; }
-    .hero-sub strong { color: rgba(255,255,255,0.95); font-weight: 600; }
+    .hero-summary {
+      color: rgba(255,255,255,0.8);
+      max-width: 720px;
+      margin-bottom: 2rem;
+    }
+    .hero-summary p {
+      font-size: 0.96rem;
+      line-height: 1.72;
+      margin-bottom: 0.85rem;
+    }
+    .hero-summary p:last-child { margin-bottom: 0; }
+    .hero-summary strong { color: rgba(255,255,255,0.96); font-weight: 700; }
     .hero-ctas { display: flex; gap: 0.9rem; flex-wrap: wrap; }
     .btn {
       display: inline-flex; align-items: center; gap: 0.45rem;
@@ -220,7 +230,22 @@
     .fi { opacity: 0; transform: translateY(20px); transition: opacity 0.48s ease, transform 0.48s ease; }
     .fi.on { opacity: 1; transform: none; }
 
-    @media (max-width: 600px) { .nav-links { display: none; } .hero-photo { display: none; } }
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .hero {
+        min-height: auto;
+        padding-top: 5.5rem;
+      }
+      .hero h1 {
+        font-size: clamp(2.25rem,13vw,3rem);
+        margin-bottom: 1.1rem;
+      }
+      .hero-summary p {
+        font-size: 0.9rem;
+        line-height: 1.65;
+      }
+      .hero-photo { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -231,6 +256,7 @@
     <li><a href="#skills">Skills</a></li>
     <li><a href="#experience">Experience</a></li>
     <li><a href="#projects">Projects</a></li>
+    <li><a href="blogs/index.html">Blog</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
 </nav>
@@ -242,9 +268,11 @@
     <div class="hero-text">
       <div class="hero-eyebrow">Lead Backend Engineer · Pune, India</div>
       <h1>Jitendra<br>Kumar</h1>
-      <p class="hero-sub">
-        <strong>7.5+ years</strong> building scalable systems, AI-enabled applications, and high-performance data pipelines that power production workloads at scale.
-      </p>
+      <div class="hero-summary">
+        <p>A highly skilled and results-driven <strong>Lead Backend Engineer</strong> with <strong>7.5+ years</strong> of experience in backend development and building scalable, production-grade systems. Experienced in developing AI-enabled applications using LLM integrations, Retrieval-Augmented Generation (RAG), and prompt-driven workflows to enhance product capabilities and automate complex use cases.</p>
+        <p>Strong background in modern data engineering and analytical system design, including building high-performance data pipelines using CDC patterns, Apache Airflow, and leveraging ClickHouse as a speed layer alongside Snowflake for long-term storage. Experienced in designing data architectures that balance real-time performance with large-scale historical data processing.</p>
+        <p>Proven expertise in system design and distributed architectures, including caching strategies, load balancing, database sharding, and event-driven systems. Demonstrated leadership in mentoring engineers, driving technical decisions, and collaborating with cross-functional teams to deliver scalable, high-quality software solutions.</p>
+      </div>
       <div class="hero-ctas">
         <a href="https://www.linkedin.com/in/jitendra-kumar-903887176/" target="_blank" class="btn btn-primary">💼 LinkedIn</a>
         <a href="https://github.com/ksjitendra" target="_blank" class="btn btn-ghost">GitHub</a>

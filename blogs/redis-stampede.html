@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cache Stampede in Redis – Jitendra Kumar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #1A4F8A;
+      --confidence: #2E6DB4;
+      --mid: #4A8FD4;
+      --whisper1: #D6EAF7;
+      --whisper2: #F0F7FD;
+      --teal: #1D7A6A;
+      --teal-bg: #D4EEE9;
+      --text: #1E2A3A;
+      --muted: #4A6080;
+      --hint: #7A92AA;
+      --border: #DDEDF8;
+      --white: #FFFFFF;
+      --sh-sm: 0 2px 8px rgba(26,79,138,0.08), 0 1px 2px rgba(26,79,138,0.04);
+      --sh-md: 0 6px 24px rgba(26,79,138,0.10), 0 2px 6px rgba(26,79,138,0.06);
+      --sh-lg: 0 16px 48px rgba(26,79,138,0.13), 0 4px 12px rgba(26,79,138,0.07);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--whisper2);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 15px;
+      overflow-x: hidden;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(1.5rem,5vw,4rem);
+      height: 62px;
+      box-shadow: 0 2px 12px rgba(26,79,138,0.05);
+    }
+    .nav-logo { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--navy); text-decoration: none; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--muted); font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.18s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--confidence); }
+    .article-hero {
+      background: linear-gradient(145deg, #0e3a6e 0%, var(--navy) 48%, var(--confidence) 100%);
+      padding: 5.8rem clamp(1.5rem,6vw,5rem) 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .article-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 45%, rgba(255,255,255,0.06) 0%, transparent 45%),
+        radial-gradient(circle at 86% 20%, rgba(29,122,106,0.16) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .hero-inner, .article-wrap { width: 100%; max-width: 920px; margin: auto; position: relative; z-index: 1; }
+    .breadcrumb { display: inline-flex; color: #8FDFCD; text-decoration: none; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.1rem; }
+    .article-hero h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2.05rem,5vw,3.6rem);
+      color: #fff;
+      line-height: 1.12;
+      font-weight: 800;
+      max-width: 850px;
+      margin-bottom: 1rem;
+    }
+    .hero-copy { color: rgba(255,255,255,0.78); max-width: 740px; font-size: 1rem; line-height: 1.75; }
+    .article-meta { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.4rem; color: rgba(255,255,255,0.64); font-size: 0.78rem; font-weight: 600; }
+    main { padding: clamp(2.5rem,6vw,4.5rem) clamp(1.5rem,6vw,5rem); }
+    article {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--sh-sm);
+      padding: clamp(1.5rem,4vw,3rem);
+    }
+    article p { color: var(--muted); margin-bottom: 1rem; }
+    article strong { color: var(--navy); font-weight: 700; }
+    article h2 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--navy);
+      font-size: clamp(1.25rem,2.5vw,1.65rem);
+      line-height: 1.3;
+      margin: 2.2rem 0 0.85rem;
+      font-weight: 800;
+    }
+    article h2:first-child { margin-top: 0; }
+    .callout {
+      background: var(--whisper2);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--teal);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      margin: 1.4rem 0;
+      color: var(--text);
+      box-shadow: var(--sh-sm);
+    }
+    .stampede-steps { display: grid; gap: 0.7rem; margin: 1rem 0 1.4rem; }
+    .stampede-step {
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+      background: var(--whisper2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      color: var(--muted);
+    }
+    .step-num {
+      flex: 0 0 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--teal-bg);
+      color: var(--teal);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+    .strategy-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 0.85rem; margin: 1.1rem 0 1.4rem; }
+    .strategy {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--white);
+      padding: 1rem;
+      box-shadow: var(--sh-sm);
+    }
+    .strategy strong { display: block; margin-bottom: 0.35rem; }
+    .strategy span { color: var(--muted); font-size: 0.84rem; line-height: 1.55; }
+    .diagram {
+      margin: 1.5rem 0;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--sh-md);
+      background: var(--whisper2);
+    }
+    .diagram img { display: block; width: 100%; height: auto; }
+    pre {
+      background: #0E2A4A;
+      color: #D6EAF7;
+      border-radius: 14px;
+      padding: 1.2rem;
+      overflow-x: auto;
+      line-height: 1.65;
+      font-size: 0.84rem;
+      margin: 1.2rem 0 1.4rem;
+      box-shadow: var(--sh-md);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .inline-list { list-style: none; margin: 1rem 0 1.3rem; display: grid; gap: 0.65rem; }
+    .inline-list li { color: var(--muted); padding-left: 1.1rem; position: relative; }
+    .inline-list li::before { content: ''; position: absolute; left: 0; top: 0.72rem; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+    .back-link { display: inline-flex; margin-top: 1.6rem; color: var(--confidence); font-weight: 700; text-decoration: none; }
+    .back-link:hover { color: var(--navy); }
+    footer { background: #0e2a4a; color: rgba(255,255,255,0.35); text-align: center; padding: 1.4rem; font-size: 0.75rem; }
+    @media (max-width: 700px) {
+      .nav-links { display: none; }
+      .article-hero { padding-top: 5rem; padding-bottom: 2.5rem; }
+      article { border-radius: 12px; }
+      pre { font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo">Jitendra Kumar</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#skills">Skills</a></li>
+      <li><a href="../index.html#projects">Projects</a></li>
+      <li><a href="index.html" class="active">Blog</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="article-hero">
+    <div class="hero-inner">
+      <a href="index.html" class="breadcrumb">Blog / Distributed Systems</a>
+      <h1>Cache Stampede: The Redis Failure Mode That Can Take Down Your Database</h1>
+      <p class="hero-copy">A cache is supposed to protect your database. But when a hot key expires under heavy concurrency, the cache can accidentally create the exact spike it was meant to prevent.</p>
+      <div class="article-meta">
+        <span>May 10, 2026</span>
+        <span>Redis</span>
+        <span>Cache Design</span>
+        <span>Distributed Systems</span>
+        <span>6 min read</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="article-wrap">
+      <article>
+        <p>Cache stampede is one of those production problems that sounds small until it arrives with real traffic. The idea is simple: you cache expensive query results in Redis, users get fast responses, and your database stays calm. Everything looks healthy until one popular key expires.</p>
+
+        <h2>What Actually Happens?</h2>
+        <p>Suppose a Redis key is serving a high-traffic endpoint. At the exact moment the key expires, 5,000 concurrent users request the same data.</p>
+        <div class="stampede-steps">
+          <div class="stampede-step"><span class="step-num">1</span><span>Redis returns a cache miss for all 5,000 requests.</span></div>
+          <div class="stampede-step"><span class="step-num">2</span><span>Every request races to the database to rebuild the same value.</span></div>
+          <div class="stampede-step"><span class="step-num">3</span><span>The database receives 5,000 simultaneous queries for identical data.</span></div>
+        </div>
+        <p>The database starts choking, latency explodes, and Redis, which was supposed to shield the database, becomes part of the failure path.</p>
+
+        <div class="callout">
+          <strong>This is a cache stampede.</strong> It is a thundering herd problem caused by many clients trying to regenerate the same expired cache entry at the same time.
+        </div>
+
+        <h2>Common Ways to Solve It</h2>
+        <p>There are a few patterns teams commonly use in production systems:</p>
+        <div class="strategy-grid">
+          <div class="strategy">
+            <strong>Mutex Lock</strong>
+            <span>Only one request fetches from the database while the rest wait for the refreshed cache value.</span>
+          </div>
+          <div class="strategy">
+            <strong>Background Refresh</strong>
+            <span>The cache never appears expired to users because a scheduled worker refreshes it before expiry.</span>
+          </div>
+          <div class="strategy">
+            <strong>Probabilistic Early Expiration</strong>
+            <span>A small percentage of requests refresh the cache early as the TTL approaches zero.</span>
+          </div>
+        </div>
+
+        <h2>The Clever Approach: Probabilistic Early Expiration</h2>
+        <p>Instead of letting the TTL hit zero for everyone at the same time, a small random percentage of requests proactively refreshes the cache when the key is close to expiry.</p>
+        <ul class="inline-list">
+          <li>No lock coordination is required.</li>
+          <li>Most users keep receiving cached data immediately.</li>
+          <li>The database sees a controlled trickle instead of a sudden spike.</li>
+        </ul>
+
+        <figure class="diagram">
+          <img src="cache-stampede-flow.svg" alt="Flow diagram for probabilistic early expiration in Redis" />
+        </figure>
+
+        <h2>Pseudo Code</h2>
+        <pre><code>function get(key, fetchFn, ttl):
+  cached = redis.GET(key)
+
+  if cached exists:
+    remainingTTL = cached.expiresAt - now()
+
+    # When less than 30s remain,
+    # 10% of requests will refresh early.
+    if remainingTTL &lt; 30s AND random() &lt; 0.1:
+      data = fetchFn()          # fetch from DB
+      redis.SET(key, data, ttl) # refresh cache
+      return data
+
+    return cached.data          # serve from cache normally
+
+  # Cold start: cache is empty.
+  data = fetchFn()
+  redis.SET(key, data, ttl)
+  return data</code></pre>
+
+        <h2>Why This Works</h2>
+        <p>For frequently accessed keys, the cache almost never truly expires. As the TTL gets closer to zero, a few requests naturally take responsibility for refreshing it. Everyone else continues to serve from Redis.</p>
+        <p>The result is a smoother load profile: instead of 5,000 requests hitting the database at once, the database receives a slow, controlled refresh pattern. No complex locking. No waiting queue. Just a small amount of randomness applied at the right time.</p>
+
+        <h2>When to Use It</h2>
+        <p>This pattern works especially well for hot keys, expensive read queries, dashboard summaries, feed data, recommendation payloads, or any endpoint where stale-for-a-few-seconds is acceptable but a database spike is not.</p>
+        <p>If the data must be strictly fresh, a lock or write-through strategy may be safer. But for high-read, latency-sensitive systems, probabilistic early expiration is a practical way to keep Redis warm and your database boring.</p>
+
+        <a href="index.html" class="back-link">Back to all posts</a>
+      </article>
+    </div>
+  </main>
+
+  <footer>&copy; 2026 Jitendra Kumar · Blog</footer>
+</body>
+</html>

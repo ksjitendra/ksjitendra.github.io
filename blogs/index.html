@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog – Jitendra Kumar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #1A4F8A;
+      --confidence: #2E6DB4;
+      --mid: #4A8FD4;
+      --whisper1: #D6EAF7;
+      --whisper2: #F0F7FD;
+      --teal: #1D7A6A;
+      --teal-bg: #D4EEE9;
+      --text: #1E2A3A;
+      --muted: #4A6080;
+      --hint: #7A92AA;
+      --border: #DDEDF8;
+      --white: #FFFFFF;
+      --sh-sm: 0 2px 8px rgba(26,79,138,0.08), 0 1px 2px rgba(26,79,138,0.04);
+      --sh-md: 0 6px 24px rgba(26,79,138,0.10), 0 2px 6px rgba(26,79,138,0.06);
+      --sh-lg: 0 16px 48px rgba(26,79,138,0.13), 0 4px 12px rgba(26,79,138,0.07);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--whisper2);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+      overflow-x: hidden;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(1.5rem,5vw,4rem);
+      height: 62px;
+      box-shadow: 0 2px 12px rgba(26,79,138,0.05);
+    }
+    .nav-logo { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--navy); text-decoration: none; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--muted); font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.18s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--confidence); }
+    .hero-inner, .container { width: 100%; max-width: 1060px; margin: auto; position: relative; z-index: 1; }
+    .blog-hero {
+      background: linear-gradient(145deg, #0e3a6e 0%, var(--navy) 48%, var(--confidence) 100%);
+      padding: 5.4rem clamp(1.5rem,6vw,5rem) 2.6rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .blog-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 18% 38%, rgba(255,255,255,0.06) 0%, transparent 46%),
+        radial-gradient(circle at 82% 20%, rgba(29,122,106,0.16) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .s-eye { display: inline-block; color: #8FDFCD; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem; }
+    h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2.1rem,5vw,3.4rem);
+      color: #fff;
+      line-height: 1.08;
+      font-weight: 800;
+      margin-bottom: 0.8rem;
+    }
+    .hero-copy { color: rgba(255,255,255,0.78); max-width: 640px; font-size: 0.98rem; line-height: 1.65; }
+    .blog-list { padding: clamp(2.5rem,6vw,4rem) clamp(1.5rem,6vw,5rem) clamp(3rem,7vw,5rem); min-height: 45vh; }
+    .section-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(1.45rem,2.8vw,2rem); color: var(--navy); font-weight: 800; margin-bottom: 1.4rem; }
+    .post-list {
+      list-style: disc;
+      padding-left: 1.5rem;
+      display: grid;
+      gap: 0.72rem;
+      font-style: italic;
+    }
+    .post-list li { color: var(--text); font-size: clamp(1rem,2vw,1.18rem); line-height: 1.45; }
+    .post-date {
+      color: var(--hint);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-style: italic;
+    }
+    .post-list a {
+      color: #2736ff;
+      text-decoration: none;
+      font-style: italic;
+    }
+    .post-list a:hover { text-decoration: underline; }
+    footer { background: #0e2a4a; color: rgba(255,255,255,0.35); text-align: center; padding: 1.4rem; font-size: 0.75rem; }
+    @media (max-width: 700px) {
+      .nav-links { display: none; }
+      .blog-hero { padding-top: 5rem; padding-bottom: 2.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo">Jitendra Kumar</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#skills">Skills</a></li>
+      <li><a href="../index.html#projects">Projects</a></li>
+      <li><a href="index.html" class="active">Blog</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="blog-hero">
+    <div class="hero-inner">
+      <div class="s-eye">Engineering Notes</div>
+      <h1>Blog</h1>
+      <p class="hero-copy">Here I write about the most interesting and important HLD concepts on a weekly basis. If you're interested in HLD, go through the posts below.</p>
+    </div>
+  </header>
+
+  <main class="blog-list">
+    <div class="container">
+      <h2 class="section-title">Latest Posts</h2>
+      <ul class="post-list">
+        <li><span class="post-date">May 10, 2026 :</span> <a href="redis-stampede.html">Cache Stampede: The Redis Failure Mode That Can Take Down Your Database</a></li>
+      </ul>
+    </div>
+  </main>
+
+  <footer>&copy; 2026 Jitendra Kumar · Blog</footer>
+</body>
+</html>

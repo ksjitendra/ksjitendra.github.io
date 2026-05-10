@@ -1,0 +1,83 @@
+<svg width="1120" height="620" viewBox="0 0 1120 620" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Cache stampede prevention flow</title>
+  <desc id="desc">A flow diagram showing cache lookup, TTL check, probabilistic early refresh, and database fetch paths.</desc>
+  <defs>
+    <linearGradient id="hero" x1="0" y1="0" x2="1120" y2="620" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0E3A6E"/>
+      <stop offset="0.52" stop-color="#1A4F8A"/>
+      <stop offset="1" stop-color="#2E6DB4"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="220" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1D7A6A"/>
+      <stop offset="1" stop-color="#43B49D"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-24%" width="140%" height="148%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#0E2A4A" flood-opacity="0.18"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2 2L10 6L2 10" stroke="#4A8FD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2 2L10 6L2 10" stroke="#1D7A6A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <rect width="1120" height="620" rx="28" fill="#F0F7FD"/>
+  <rect x="28" y="28" width="1064" height="564" rx="24" fill="url(#hero)"/>
+  <circle cx="138" cy="486" r="176" fill="white" opacity="0.05"/>
+  <circle cx="960" cy="112" r="142" fill="#1D7A6A" opacity="0.14"/>
+
+  <text x="76" y="86" fill="#FFFFFF" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif" font-size="34" font-weight="800">Probabilistic Early Expiration</text>
+  <text x="78" y="120" fill="#D6EAF7" font-family="Inter, Arial, sans-serif" font-size="17">Keep hot keys warm before the TTL reaches zero, so the database sees a controlled trickle instead of a spike.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="76" y="188" width="196" height="104" rx="16" fill="#FFFFFF"/>
+    <text x="112" y="232" fill="#1A4F8A" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif" font-size="20" font-weight="800">Request</text>
+    <text x="112" y="260" fill="#4A6080" font-family="Inter, Arial, sans-serif" font-size="15">User asks for key</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="350" y="188" width="196" height="104" rx="16" fill="#FFFFFF"/>
+    <text x="396" y="232" fill="#1A4F8A" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif" font-size="20" font-weight="800">Redis GET</text>
+    <text x="388" y="260" fill="#4A6080" font-family="Inter, Arial, sans-serif" font-size="15">Read cached value</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="624" y="172" width="222" height="136" rx="16" fill="#FFFFFF"/>
+    <text x="668" y="222" fill="#1A4F8A" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif" font-size="20" font-weight="800">TTL Window?</text>
+    <text x="660" y="250" fill="#4A6080" font-family="Inter, Arial, sans-serif" font-size="15">Remaining TTL &lt; 30s</text>
+    <text x="660" y="276" fill="#4A6080" font-family="Inter, Arial, sans-serif" font-size="15">and random() &lt; 0.1</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="902" y="188" width="156" height="104" rx="16" fill="url(#teal)"/>
+    <text x="940" y="232" fill="#FFFFFF" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif" font-size="20" font-weight="800">Serve</text>
+    <text x="925" y="260" fill="#D4EEE9" font-family="Inter, Arial, sans-serif" font-size="15">Return cache</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="618" y="402" width="234" height="104" rx="16" fill="#FFFFFF"/>
+    <text x="674" y="446" fill="#1A4F8A" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif" font-size="20" font-weight="800">Refresh</text>
+    <text x="648" y="474" fill="#4A6080" font-family="Inter, Arial, sans-serif" font-size="15">Fetch once from DB</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="346" y="402" width="204" height="104" rx="16" fill="#FFFFFF"/>
+    <text x="394" y="446" fill="#1A4F8A" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif" font-size="20" font-weight="800">Redis SET</text>
+    <text x="380" y="474" fill="#4A6080" font-family="Inter, Arial, sans-serif" font-size="15">Store fresh data</text>
+  </g>
+
+  <path d="M272 240H350" stroke="#D6EAF7" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M546 240H624" stroke="#D6EAF7" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M846 240H902" stroke="#D6EAF7" stroke-width="4" stroke-linecap="round" marker-end="url(#arrowTeal)"/>
+  <path d="M735 308V402" stroke="#D6EAF7" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M618 454H550" stroke="#D6EAF7" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M448 402V332C448 316 461 304 477 304H926C942 304 954 292 954 276" stroke="#D6EAF7" stroke-width="4" stroke-linecap="round" marker-end="url(#arrowTeal)"/>
+
+  <rect x="626" y="328" width="218" height="42" rx="21" fill="#D4EEE9"/>
+  <text x="658" y="354" fill="#1D7A6A" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">small random refresh</text>
+  <rect x="872" y="320" width="124" height="42" rx="21" fill="#D6EAF7"/>
+  <text x="902" y="346" fill="#1A4F8A" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">normal hit</text>
+
+  <text x="78" y="548" fill="#D6EAF7" font-family="Inter, Arial, sans-serif" font-size="16">Cold miss path: no cached value means fetch from DB, set Redis, then serve. Hot-key path: most requests serve cached data while a few refresh early.</text>
+</svg>
