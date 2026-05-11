@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../google-analytics.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Most Frequently Used Rate Limiting Algo (Sliding Window Counter) – Jitendra Kumar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #1A4F8A;
+      --confidence: #2E6DB4;
+      --mid: #4A8FD4;
+      --whisper1: #D6EAF7;
+      --whisper2: #F0F7FD;
+      --teal: #1D7A6A;
+      --teal-bg: #D4EEE9;
+      --text: #1E2A3A;
+      --muted: #4A6080;
+      --hint: #7A92AA;
+      --border: #DDEDF8;
+      --white: #FFFFFF;
+      --sh-sm: 0 2px 8px rgba(26,79,138,0.08), 0 1px 2px rgba(26,79,138,0.04);
+      --sh-md: 0 6px 24px rgba(26,79,138,0.10), 0 2px 6px rgba(26,79,138,0.06);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--whisper2);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 15px;
+      overflow-x: hidden;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(1.5rem,5vw,4rem);
+      height: 62px;
+      box-shadow: 0 2px 12px rgba(26,79,138,0.05);
+    }
+    .nav-logo { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--navy); text-decoration: none; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--muted); font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.18s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--confidence); }
+    .article-hero {
+      background: linear-gradient(145deg, #0e3a6e 0%, var(--navy) 48%, var(--confidence) 100%);
+      padding: 5.8rem clamp(1.5rem,6vw,5rem) 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .article-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 45%, rgba(255,255,255,0.06) 0%, transparent 45%),
+        radial-gradient(circle at 86% 20%, rgba(29,122,106,0.16) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .hero-inner, .article-wrap { width: 100%; max-width: 920px; margin: auto; position: relative; z-index: 1; }
+    .breadcrumb { display: inline-flex; color: #8FDFCD; text-decoration: none; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.1rem; }
+    .article-hero h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2.05rem,5vw,3.6rem);
+      color: #fff;
+      line-height: 1.12;
+      font-weight: 800;
+      max-width: 850px;
+      margin-bottom: 1rem;
+    }
+    .hero-copy { color: rgba(255,255,255,0.78); max-width: 740px; font-size: 1rem; line-height: 1.75; }
+    .article-meta { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.4rem; color: rgba(255,255,255,0.64); font-size: 0.78rem; font-weight: 600; }
+    main { padding: clamp(2.5rem,6vw,4.5rem) clamp(1.5rem,6vw,5rem); }
+    article {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--sh-sm);
+      padding: clamp(1.5rem,4vw,3rem);
+    }
+    article p { color: var(--muted); margin-bottom: 1rem; }
+    article strong { color: var(--navy); font-weight: 700; }
+    article h2 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--navy);
+      font-size: clamp(1.25rem,2.5vw,1.65rem);
+      line-height: 1.3;
+      margin: 2.2rem 0 0.85rem;
+      font-weight: 800;
+    }
+    article h2:first-child { margin-top: 0; }
+    .callout {
+      background: var(--whisper2);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--teal);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      margin: 1.4rem 0;
+      color: var(--text);
+      box-shadow: var(--sh-sm);
+    }
+    .inline-list { list-style: none; margin: 1rem 0 1.3rem; display: grid; gap: 0.65rem; }
+    .inline-list li { color: var(--muted); padding-left: 1.1rem; position: relative; }
+    .inline-list li::before { content: ''; position: absolute; left: 0; top: 0.72rem; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+    .diagram {
+      margin: 1.5rem 0;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--sh-md);
+      background: var(--whisper2);
+    }
+    .diagram img { display: block; width: 100%; height: auto; }
+    pre {
+      background: #0E2A4A;
+      color: #D6EAF7;
+      border-radius: 14px;
+      padding: 1.2rem;
+      overflow-x: auto;
+      line-height: 1.65;
+      font-size: 0.84rem;
+      margin: 1.2rem 0 1.4rem;
+      box-shadow: var(--sh-md);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .back-link { display: inline-flex; margin-top: 1.6rem; color: var(--confidence); font-weight: 700; text-decoration: none; }
+    .back-link:hover { color: var(--navy); }
+    footer { background: #0e2a4a; color: rgba(255,255,255,0.35); text-align: center; padding: 1.4rem; font-size: 0.75rem; }
+    @media (max-width: 700px) {
+      .nav-links { display: none; }
+      .article-hero { padding-top: 5rem; padding-bottom: 2.5rem; }
+      article { border-radius: 12px; }
+      pre { font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo">Jitendra Kumar</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#skills">Skills</a></li>
+      <li><a href="../index.html#projects">Projects</a></li>
+      <li><a href="index.html" class="active">Blog</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="article-hero">
+    <div class="hero-inner">
+      <a href="index.html" class="breadcrumb">Blog / HLD Concepts</a>
+      <h1>Most Frequently Used Rate Limiting Algo (Sliding Window Counter)</h1>
+      <p class="hero-copy">A deep dive into why Sliding Window Counter is used so often in real-world rate limiting, and how it fixes the biggest weakness of Fixed Window Counter.</p>
+      <div class="article-meta">
+        <span>May 12, 2026</span>
+        <span>Rate Limiting</span>
+        <span>Redis</span>
+        <span>HLD</span>
+        <span>7 min read</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="article-wrap">
+      <article>
+        <p>The <strong>Sliding Window Counter</strong> was designed specifically to solve the most well-known weakness of the Fixed Window Counter: boundary exploitation.</p>
+
+        <h2>What Is Boundary Exploitation?</h2>
+        <p>Suppose you allow 100 requests per minute. A user sends 100 requests in the last 2 seconds of the first minute, and then sends 100 more as soon as the next minute starts.</p>
+        <pre><code>12:00:58 - 12:00:59  =&gt; 100 requests
+12:01:00 - 12:01:01  =&gt; 100 requests
+
+Total in about 3 seconds =&gt; 200 requests</code></pre>
+        <p>The Fixed Window Counter allowed all of it because the counter simply reset at the minute boundary. In just a few seconds, the user made double the allowed limit.</p>
+        <div class="callout">
+          <strong>This is boundary exploitation.</strong> Sliding Window Counter eliminates this problem in most cases, at the cost of slightly more memory and a small degree of approximation.
+        </div>
+
+        <h2>How Sliding Window Counter Works</h2>
+        <p>In a distributed system, Redis is a common choice for storing rate-limit counters. When a user's first request arrives, we create a key for that user and that minute. We increment the counter for every request within that minute. When the next minute begins, we create a new key and start counting again.</p>
+        <p>At any point in time, we maintain two Redis keys per user:</p>
+        <ul class="inline-list">
+          <li>One key for the previous minute.</li>
+          <li>One key for the current minute.</li>
+        </ul>
+        <pre><code>rate:user:123:12:00  =&gt; 80  # previous minute
+rate:user:123:12:01  =&gt; 20  # current minute, 15 seconds in</code></pre>
+
+        <h2>The Weighted Calculation</h2>
+        <p>Instead of checking only the current minute's count, we blend in a portion of the previous minute's count. The portion depends on how much of the previous minute overlaps with the rolling window.</p>
+        <figure class="diagram">
+          <img src="sliding-window-counter-diagram.svg" alt="Sliding Window Counter diagram showing 80 previous requests, 20 current requests, 45 seconds overlap, and 80 estimated requests" />
+        </figure>
+        <pre><code>Allowed limit          = 100 requests per minute
+Previous minute total  = 80 requests
+Current minute elapsed = 15 seconds
+Current minute count   = 20 requests
+
+Overlap from previous minute:
+= 60 - 15
+= 45 seconds
+= 75% of the previous minute
+
+Estimated previous requests:
+= 75% of 80
+= 60 requests
+
+Total estimated requests:
+= 60 previous + 20 current
+= 80 requests
+
+80 &lt; 100 =&gt; request allowed</code></pre>
+        <p>This weighted blending assumes requests arrived uniformly throughout the previous minute. That is the source of the slight inaccuracy. In reality, requests may have arrived in a burst. But for most production systems, the approximation is accurate enough and much cheaper than storing every individual timestamp.</p>
+
+        <h2>Pseudo Code</h2>
+        <pre><code>function allowRequest(userId, limit, windowSeconds):
+  now = currentTime()
+  currentWindow = floor(now / windowSeconds)
+  previousWindow = currentWindow - 1
+
+  currentKey = "rate:" + userId + ":" + currentWindow
+  previousKey = "rate:" + userId + ":" + previousWindow
+
+  currentCount = redis.GET(currentKey) or 0
+  previousCount = redis.GET(previousKey) or 0
+
+  elapsed = now % windowSeconds
+  previousWeight = (windowSeconds - elapsed) / windowSeconds
+
+  estimatedCount = (previousCount * previousWeight) + currentCount
+
+  if estimatedCount &gt;= limit:
+    return false
+
+  redis.INCR(currentKey)
+  redis.EXPIRE(currentKey, windowSeconds * 2)
+  return true</code></pre>
+
+        <h2>Pros</h2>
+        <ul class="inline-list">
+          <li><strong>Eliminates boundary exploitation in most cases</strong> because users cannot easily game the minute boundary to double their allowed requests.</li>
+          <li><strong>Low memory usage</strong> because Redis stores only 2 keys per user, each with a single integer.</li>
+          <li><strong>No background jobs needed</strong> because Redis TTL automatically cleans up old keys.</li>
+          <li><strong>Fast</strong> because each request needs only two Redis reads and one write.</li>
+          <li><strong>Scales horizontally</strong> because the rate-limit state lives in Redis, not in application servers.</li>
+        </ul>
+
+        <h2>Cons</h2>
+        <ul class="inline-list">
+          <li><strong>Slight inaccuracy</strong> because the uniform distribution assumption is never perfectly true.</li>
+          <li><strong>More memory than Fixed Window</strong> because it stores two keys per user instead of one.</li>
+          <li><strong>Not suitable for exact counting needs</strong> such as billing, legal limits, or compliance-sensitive enforcement.</li>
+          <li><strong>Slightly more complex to implement</strong> because it needs two reads, a weighted formula, and more test coverage.</li>
+        </ul>
+
+        <h2>Where It Fits in Real Systems</h2>
+        <ul class="inline-list">
+          <li><strong>Cloudflare - Traffic and DDoS Management:</strong> At edge scale, Fixed Window can allow boundary bursts and Sliding Window Log can require too much memory. Sliding Window Counter gives a practical middle ground.</li>
+          <li><strong>Google Search Autocomplete:</strong> Every keystroke can fire an API request. Sliding Window Counter handles natural bursts without making the boundary problem worse.</li>
+          <li><strong>Uber - Price Estimate API:</strong> Dragging a map can create rapid estimate requests. Approximate rate limiting is acceptable for protecting this kind of endpoint.</li>
+          <li><strong>Zomato / Swiggy - Restaurant Search:</strong> Map scrolling and restaurant search create bursty API traffic, especially during peak hours. Two counters per user keeps memory manageable.</li>
+          <li><strong>Twitter / X - Timeline and Feed API:</strong> Aggressive scrolling can generate bursts of feed requests. Sliding Window Counter provides fair limiting without storing every request timestamp.</li>
+        </ul>
+
+        <h2>Final Thought</h2>
+        <p>Sliding Window Counter is not perfectly accurate, but that is exactly why it is so useful. It gives you a strong balance between fairness, latency, memory usage, and implementation complexity. For most high-scale API rate limiting use cases, that tradeoff is hard to beat.</p>
+
+        <a href="index.html" class="back-link">Back to all posts</a>
+      </article>
+    </div>
+  </main>
+
+  <footer>&copy; 2026 Jitendra Kumar · Blog</footer>
+</body>
+</html>
