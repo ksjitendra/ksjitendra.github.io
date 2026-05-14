@@ -1,0 +1,97 @@
+Let's talk about an important HLD concept - Distributed Transactions.
+
+It's interesting how this came into the picture.
+
+
+
+Let's take a banking scenario:
+
+→ User A is transferring ₹10,000 to User B.
+
+
+
+In a normal monolithic system, what we generally do these steps:
+
+
+
+1. Take a lock on the rows of User A and User B
+
+2. Fetch the current balance of User A
+
+3. Deduct the amount that needs to be transferred
+
+4. Increase User B's balance
+
+5. Commit the transaction and release the locks
+
+
+
+So the flow looks something like this:
+
+Start Transaction → Run Update Queries → Commit Transaction → Release Locks
+
+
+
+Everything works well, and the transaction remains atomic.
+
+
+
+But what if the system scales and we are using sharding on the database, which means the database is distributed across the machines 
+
+
+
+Suppose User A's data is on one database machine and User B's data is on another. Now, a single local transaction cannot guarantee atomicity across both databases.
+
+
+
+This is where Distributed Transactions come into the picture.
+
+
+
+One way to achieve this is the Two-Phase Commit (2PC) protocol.
+
+
+
+In 2PC:
+
+We first take locks on both databases
+
+-> Prepare both databases for the transaction
+
+-> Update Database A
+
+-> Update Database B
+
+-> Finally commit both
+
+
+
+But imagine this scenario:
+
+→ Database A gets updated successfully
+
+→ While updating Database B, it goes down
+
+
+
+Now the system becomes inconsistent.
+
+
+
+There are many such failure scenarios in distributed systems. Because of issues like blocking, tight coupling, reduced scalability, and availability concerns, 2PC is generally considered an anti-pattern in modern microservices architectures.
+
+
+
+So what's the solution?
+
+
+
+The solution for it is the Saga pattern. Here is the link for of 5 mins read - 
+
+
+
+Follow for more system design concepts, explained simply.
+
+
+
+#SystemDesign #HighLevelDesign #HLD #DistributedSystems #DistributedTransactions #SagaPattern #TwoPhaseCommit #Microservices #BackendDevelopment #BackendEngineering #ScalableSystems #SoftwareEngineering #DatabaseSharding #SystemArchitecture #TechArchitecture #NodeJS #JavaScript #EngineeringLeadership #CloudComputing #TechEducation
